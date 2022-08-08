@@ -1,10 +1,6 @@
 import shutil
 import os
 
-arquivos = [os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-102-000-R07.dwg"),os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-103-000-R07.dwg"), os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-104-000-R06.dwg") ]
-
-destino = "C:/Users/ian10/Desktop/1. NOVA REVISÃO"
-
 def FileMovimentation(arquivos,destino):
 
     for i in arquivos:
@@ -21,12 +17,17 @@ def FileMovimentation(arquivos,destino):
         if("R" in versao02):
             versao02 =versao02.split("R")[1]
 
-        if(int(versao02)<10):
+        if(int(versao02)<=10):
             
             versao_ = int(versao02)-1
             versaoAnterior = f"0{versao_}"
             revisaoAntiga = nomeArquivos.replace(versao02,versaoAnterior)
         
+        if(int(versao02)>10):
+            
+            versao_ = int(versao02)-1
+            versaoAnterior = f"{versao_}"
+            revisaoAntiga = nomeArquivos.replace(versao02,versaoAnterior)
         if (revisaoAntiga in diretorio):
             arquivo = os.path.abspath(diretorio[diretorio.index(revisaoAntiga)])
         else:

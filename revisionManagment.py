@@ -1,45 +1,56 @@
 import shutil
 import os
 
-arquivos = [os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-112-000-04.dwg"),os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-103-000-07.dwg"),os.path.abspath("C:/Users/ian10/Desktop/RBG-EST-E-102-000-07.dwg") ]
+class FileMovimentation():
+    
+    def __init__(self,arquivo:str,destino:str) -> None:
+        self.arquivo = arquivo
+        self.destino = destino
 
-destino = "C:/Users/ian10/Desktop/1. NOVA REVISÃO"
-revisoesAntigas = "Antigos"
+    def NameSplit(self):
+        quebra01 = self.FileName().split(".")
+        text = quebra01[0]
+        return text[-2:]
 
-for i in arquivos:
+    def VerPrefix(self):
+        if "R" in self.NameSplit():
+            return(self.NameSplit().split("R")[1])
     
-    os.chdir(destino)
-    diretorio = os.listdir(destino)
-    nomeArquivos = os.path.basename(i)
-    
-    quebra01 = nomeArquivos.split("-")
-    quebra02 = quebra01[-1].split(".")
-    
-    versao02 = quebra02[0]
-    
-    if(int(versao02)<10):
-        versao_ = int(versao02)-1
-        versaoAnterior = f"0{versao_}"
-        revisaoAntiga = nomeArquivos.replace(versao02,versaoAnterior)
-    
-    if (revisaoAntiga in diretorio):
-        arquivo = os.path.abspath(diretorio[diretorio.index(revisaoAntiga)])
-    else:
-        "ERRO"
-        continue
+    def RevisionWithoutPrefix(self):
         
-    if "Antigo" in diretorio:
-        novoDiretorio = os.path.abspath(f'{destino}/Antigo')
+        if(int(self.NameSplit())<=10):
+            versao_ = int(self.NameSplit())-1
+            versaoAnterior = f"0{versao_}."
+            revisaoAntiga = self.FileName().replace(f"{self.NameSplit()}.",versaoAnterior)
+            
+        elif(int(self.versao02)>10):
+            versao_ = int(self.NameSplit())-1
+            versaoAnterior = f"{versao_}."
+            revisaoAntiga = self.FileName().replace(f"{self.NameSplit()}.",versaoAnterior)
+
+        return revisaoAntiga
+    
+    def RevisionPrefix(self):
         
-    elif "Antigos" in diretorio:
-        novoDiretorio = os.path.abspath(f'{destino}/Antigos')
+        if(int(self.VerPrefix())<=10):
+            versao_ = int(self.VerPrefix())-1
+            versaoAnterior = f"0{versao_}."
+            revisaoAntiga = self.FileName().replace(f"{self.VerPrefix()}.",versaoAnterior)
+            
+        elif(int(self.VerPrefix())>10):
+            versao_ = int(self.VerPrefix())-1
+            versaoAnterior = f"{versao_}."
+            revisaoAntiga = self.FileName().replace(f"{self.VerPrefix()}.",versaoAnterior)
+
+        return revisaoAntiga
         
-    else:
-        novoDiretorio = os.path.abspath(destino+"/Antigos")
-        os.mkdir(novoDiretorio)
+    def FileName(self):
+        return(os.path.basename(self.arquivo))
+    
+    def GetFilesInDir(self):
+        destino = self.destino
+        return(os.listdir(destino))
         
-    shutil.move(arquivo,novoDiretorio)
-    shutil.move(i,destino)
 
     
             

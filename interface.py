@@ -77,17 +77,24 @@ class Application(FileMovimentation):
         self.en_DESTINO = filedialog.askdirectory()
         self.str_DESTINO.set(self.en_DESTINO)
 
-        if "Antigo" in os.listdir(self.en_DESTINO):
-            self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigo"
-        else:
-            self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigos"
+        if self.en_DESTINO:
+            if "Antigo" in os.listdir(self.en_DESTINO):
+                self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigo"
+            else:
+                self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigos"
 
-        self.str_LOCALANTIGO.set(self.en_LOCALANTIGO)
+            self.str_LOCALANTIGO.set(self.en_LOCALANTIGO)
 
         
     def AskOpenFiles(self):
         self.en_ARQUIVOS = filedialog.askopenfilenames()
-        self.str_ARQUIVOS.set(self.en_ARQUIVOS)
+        
+        u = ""
+        for i in self.en_ARQUIVOS:
+            u = u + f"{os.path.basename(i)}, "
+        
+
+        self.str_ARQUIVOS.set(u[:-1])
     
     def FilesReload(self):
         self.en_LOCALANTIGO = filedialog.askdirectory()
@@ -95,56 +102,69 @@ class Application(FileMovimentation):
         
     def VerDir(self):
         try:
-            self.en_view_LOGGER["state"]="normal"
-            self.en_view_LOGGER.delete(1.0,END)
-            self.en_view_LOGGER["state"]="disabled"
-            
-            add = 0
-            not_add = 0
-            
-            for i in self.en_ARQUIVOS:
-                update = FileMovimentation(i,self.en_DESTINO)
-                os.chdir(self.en_DESTINO)
-                update.FileName()
-                update.NameSplit()
+            if self.en_DESTINO and self.en_ARQUIVOS:
                 
-                if update.VerPrefix():
-                    revisaoAntiga = update.RevisionPrefix()
-                else:
-                    revisaoAntiga = update.RevisionWithoutPrefix()
+                self.en_view_LOGGER["state"]="normal"
+                self.en_view_LOGGER.delete(1.0,END)
+                self.en_view_LOGGER["state"]="disabled"
                 
-                if revisaoAntiga in update.GetFilesInDir():
+                add = 0
+                not_add = 0
+                
+                for i in self.en_ARQUIVOS:
+                    update = FileMovimentation(i,self.en_DESTINO)
+                    os.chdir(self.en_DESTINO)
+                    update.FileName()
+                    update.NameSplit()
+                    
+                    if update.VerPrefix():
+                        revisaoAntiga = update.RevisionPrefix()
+                    else:
+                        revisaoAntiga = update.RevisionWithoutPrefix()
+                    
+                    if revisaoAntiga in update.GetFilesInDir():
+                        arquivoAntigo = os.path.abspath(update.GetFilesInDir()[update.GetFilesInDir().index(revisaoAntiga)])
 
-                    arquivoAntigo = os.path.abspath(update.GetFilesInDir()[update.GetFilesInDir().index(revisaoAntiga)])
-                    print(arquivoAntigo)
-                    
-                    if not os.path.exists(self.en_LOCALANTIGO):
-                        os.mkdir(self.en_LOCALANTIGO)
                         
-                    shutil.move(arquivoAntigo,self.en_LOCALANTIGO)
+                        if not os.path.exists(self.en_LOCALANTIGO):
+                            os.mkdir(self.en_LOCALANTIGO)
+                            
+                        shutil.move(arquivoAntigo,self.en_LOCALANTIGO)
+                        
+                        shutil.move(i,self.en_DESTINO)
+                        
+                        add += 1
+                        
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> OK","green")
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+                        
+                    else:
+                        not_add += 1
+                        
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> REVISÃO", "red")
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"] = "disabled"
                     
-                    shutil.move(i,self.en_DESTINO)
-                    
-                    add += 1
-                    
+                self.en_view_LOGGER["state"] = "normal"
+                self.en_view_LOGGER.insert(END,f"\n{add} --> ADICIONADOS\n{not_add} --> NÃO ADICIONADOS")
+                self.en_view_LOGGER.see(END)
+                self.en_view_LOGGER["state"] = "disabled"
+            
+            else:
                     self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> OK","green")
-                    self.en_view_LOGGER.see(END)
-                    self.en_view_LOGGER["state"]="disabled"
-                    
-                else:
-                    not_add += 1
-                    
-                    self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> REVISÃO", "red")
+                    self.en_view_LOGGER.delete(1.0,END)
+                    self.en_view_LOGGER.insert(END,"\nO destino não foi adicionado", "red")
                     self.en_view_LOGGER.see(END)
                     self.en_view_LOGGER["state"] = "disabled"
                 
-            self.en_view_LOGGER["state"] = "normal"
-            self.en_view_LOGGER.insert(END,f"\n{add} --> ADICIONADOS\n{not_add} --> NÃO ADICIONADOS")
-            self.en_view_LOGGER.see(END)
-            self.en_view_LOGGER["state"] = "disabled"
-            
+                    self.en_view_LOGGER["state"] = "normal"
+                    self.en_view_LOGGER.insert(END,"\nArquivos não selecionados", "red")
+                    self.en_view_LOGGER.see(END)
+                    self.en_view_LOGGER["state"] = "disabled"
+                    
         except AttributeError:
                 try: 
                     self.en_DESTINO in globals()
@@ -167,15 +187,6 @@ class Application(FileMovimentation):
                     
                     
 
-
-            
-            # if not self.en_DESTINO:
-            #     self.en_view_LOGGER["state"] = "normal"
-            #     self.en_view_LOGGER.delete(1.0,END)
-            #     self.en_view_LOGGER.insert(END,"Destino não selecionado", "red")
-            #     self.en_view_LOGGER.see(END)
-            #     self.en_view_LOGGER["state"] = "disabled"
-        
 
     def TagConfig(self):
         self.en_view_LOGGER.tag_config("red", foreground="red")

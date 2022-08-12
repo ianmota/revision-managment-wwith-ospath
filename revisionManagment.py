@@ -8,9 +8,9 @@ class FileMovimentation():
         self.destino = destino
 
     def NameSplit(self):
-        quebra01 = self.FileName().split("-")
-        quebra02 = quebra01[-1].split(".")
-        return quebra02[0]
+        quebra01 = self.FileName().split(".")
+        text = quebra01[0]
+        return text[-2:]
 
     def VerPrefix(self):
         if "R" in self.NameSplit():

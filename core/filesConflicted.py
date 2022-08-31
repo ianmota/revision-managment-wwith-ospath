@@ -1,5 +1,5 @@
 from genericpath import isdir
-from revisionManagment import FileMovimentation
+from core.revisionManagment import FileMovimentation
 import os
 import os.path as op
 import shutil

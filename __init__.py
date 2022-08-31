@@ -1,2 +1,2 @@
-from interface import *
+from interface.interface import *
 Application()

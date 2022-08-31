@@ -2,10 +2,10 @@
 import tkinter as tk
 from tkinter import END, N, filedialog
 from tkinter.scrolledtext import ScrolledText
-from revisionManagment import *
+from core.revisionManagment import *
 from base64 import b64decode
 import shutil
-from filesConflicted import FileConflicted
+from core.filesConflicted import FileConflicted
 import datetime as dt
 import random
 import string

@@ -1,5 +1,3 @@
-import os
-
 class FileMovimentation():
     
     def __init__(self,arquivo:str,destino:str) -> None:

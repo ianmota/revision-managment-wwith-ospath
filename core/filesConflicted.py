@@ -1,8 +1,8 @@
-from genericpath import isdir
 from core.revisionManagment import FileMovimentation
-import os
-import os.path as op
-import shutil
+from os import remove, listdir
+from os.path import join, basename
+from shutil import move
+
 class FileConflicted():
     def __init__(self,arquivo:str,origem:str,destino:str = "") -> None:
         self.arquivo = arquivo
@@ -26,19 +26,19 @@ class FileConflicted():
                 break
                 
         if flag:
-            os.remove(self.arquivo)
+            remove(self.arquivo)
             self.statusDeleted = True
         else:
 
                 update = FileMovimentation(self.arquivo,self.origem)
                 dirFiles = list()
                 self.statusDeleted = False
-                for i in os.listdir(self.origem):
+                for i in listdir(self.origem):
                     dirFiles.append(i.lower())
                 try:
-                    if op.basename(update.OldReview()).lower() in dirFiles:
-                        arquivo = os.path.join(self.origem,os.path.basename(update.OldReview()))
-                        shutil.move(arquivo,self.destino)
+                    if basename(update.OldReview()).lower() in dirFiles:
+                        arquivo = join(self.origem,basename(update.OldReview()))
+                        move(arquivo,self.destino)
                         self.statusUpdate = True
                     else:
                         self.statusUpdate = False
@@ -47,9 +47,9 @@ class FileConflicted():
                 
     
     def EqualConflicted(self):
-        arquivoName = op.basename(self.arquivo).lower()
+        arquivoName = basename(self.arquivo).lower()
         dirFiles = list()
-        for i in os.listdir(self.origem):
+        for i in listdir(self.origem):
             dirFiles.append(i.lower())
 
         if arquivoName in dirFiles:
@@ -61,7 +61,7 @@ class FileConflicted():
         pass
     
     def NewFile(self):
-        arquivoName = op.basename(self.arquivo).lower()
+        arquivoName = basename(self.arquivo).lower()
         dirFiles = list()
         flag = False
         for i in ["bak","dwl"]:
@@ -69,12 +69,12 @@ class FileConflicted():
                 flag = True
                 break
             
-        for i in os.listdir(self.origem):
+        for i in listdir(self.origem):
             dirFiles.append(i.lower())
         
         self.statusDeleted = False
         if flag:
-            os.remove(self.arquivo)
+            remove(self.arquivo)
             self.statusDeleted = True
         elif arquivoName not in dirFiles:
             self.ValueError = False

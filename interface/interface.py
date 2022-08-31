@@ -1,18 +1,18 @@
-
 import tkinter as tk
-from tkinter import END, N, filedialog
+from os.path import abspath, basename, exists, join 
+from os import listdir, mkdir
+from tkinter import END, filedialog
 from tkinter.scrolledtext import ScrolledText
-from core.revisionManagment import *
 from base64 import b64decode
-import shutil
+from shutil import move 
 from core.filesConflicted import FileConflicted
-import datetime as dt
+from datetime import datetime
 import random
 import string
 
-class Application(FileMovimentation):
+class Application():
+    
     def __init__(self):
-        
         self.root = tk.Tk()
         self.GlobalVariable()
         self.logo()
@@ -26,7 +26,6 @@ class Application(FileMovimentation):
         self.root.mainloop()
     
     def GlobalVariable(self):
-        
         self.str_DESTINO = tk.StringVar()
         self.str_ARQUIVOS = tk.StringVar()
         self.str_LOCALANTIGO = tk.StringVar()
@@ -65,7 +64,6 @@ class Application(FileMovimentation):
         lb_LOCALANTIGO.place(x=10,y=100)
     
     def EntryRoot01(self):
-        
         self.en_AUTOR = tk.Entry(self.root)
         self.en_AUTOR.place(x=140,y=7.5,width=320)
         
@@ -83,15 +81,15 @@ class Application(FileMovimentation):
         
     def AskDirectory(self):
         self.en_DESTINO = filedialog.askdirectory()
-        self.str_DESTINO.set(os.path.abspath(self.en_DESTINO))
+        self.str_DESTINO.set(abspath(self.en_DESTINO))
 
         if self.en_DESTINO:
-            if "Antigo" in os.listdir(self.en_DESTINO):
+            if "Antigo" in listdir(self.en_DESTINO):
                 self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigo"
             else:
                 self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigos"
 
-            self.str_LOCALANTIGO.set(os.path.abspath(self.en_LOCALANTIGO))
+            self.str_LOCALANTIGO.set(abspath(self.en_LOCALANTIGO))
 
         
     def AskOpenFiles(self):
@@ -99,7 +97,7 @@ class Application(FileMovimentation):
          
         u = ""
         for i in self.en_ARQUIVOS:
-            u = u + f"{os.path.basename(i)}, "
+            u = u + f"{basename(i)}, "
         
 
         self.str_ARQUIVOS.set(u[:-1])
@@ -119,17 +117,17 @@ class Application(FileMovimentation):
                 add = 0
                 not_add = 0
                 
-                if not os.path.exists(self.en_LOCALANTIGO):
-                    os.mkdir(self.en_LOCALANTIGO)
+                if not exists(self.en_LOCALANTIGO):
+                    mkdir(self.en_LOCALANTIGO)
                 self.logGeneral = self.logGeneral + "\nATUALIZANDO A PASTA DE DESTINO:\n"
-                for u in os.listdir(self.en_DESTINO):
-                    arquivo = os.path.join(self.en_DESTINO,u)
+                for u in listdir(self.en_DESTINO):
+                    arquivo = join(self.en_DESTINO,u)
                     conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
                     conflito.OldConflicted()
                     self.en_view_LOGGER["state"] = "normal"
                     if conflito.statusUpdate:
                         self.en_view_LOGGER.insert(END,f"{u} --> ATUALIZADO\n","gray")
-                        self.logGeneral = self.logGeneral + f"{u} --> MOVIDO PARA {os.path.abspath(self.en_LOCALANTIGO)}\n"
+                        self.logGeneral = self.logGeneral + f"{u} --> MOVIDO PARA {abspath(self.en_LOCALANTIGO)}\n"
                     if conflito.ValueError:
                         self.en_view_LOGGER.insert(END,f"{u} --> VERIFICAR ERRO!\n","red")
                         self.logGeneral = self.logGeneral + f"{u} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
@@ -147,43 +145,43 @@ class Application(FileMovimentation):
                     update.NewFile()
                     
                     if update.statusUpdate:                        
-                        shutil.move(i,self.en_DESTINO)
+                        move(i,self.en_DESTINO)
                         add += 1
                         
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> ATUALIZADO!\n","green")
-                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> ARQUIVO ATUALIZADO, MOVIDO PARA {os.path.abspath(self.en_DESTINO)}\n"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} --> ATUALIZADO!\n","green")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} --> ARQUIVO ATUALIZADO, MOVIDO PARA {abspath(self.en_DESTINO)}\n"
                         if update.ValueError:
-                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> VERIFICAR ERRO!\n","red")
-                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
+                            self.en_view_LOGGER.insert(END,f"{basename(i)} --> VERIFICAR ERRO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
                         if update.statusDeleted:
-                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> EXCLUIDO!\n","red")
-                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> EXCLUÍDO!\n"
+                            self.en_view_LOGGER.insert(END,f"{basename(i)} --> EXCLUIDO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{basename(i)} --> EXCLUÍDO!\n"
                         self.en_view_LOGGER.see(END)
                         self.en_view_LOGGER["state"]="disabled"
                     
                     elif update.statusEqual:
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> JÁ EXISTE!\n","red")
-                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> A REVISÃO INDICADA JÁ EXISTE NA PASTA!\n"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} --> JÁ EXISTE!\n","red")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} --> A REVISÃO INDICADA JÁ EXISTE NA PASTA!\n"
                         self.en_view_LOGGER.see(END)
                         self.en_view_LOGGER["state"]="disabled"
                         
                         not_add += 1
                     
                     elif update.statusNewReview:
-                        shutil.move(i,self.en_DESTINO)
+                        move(i,self.en_DESTINO)
                         add += 1
                         
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> NOVA REVISÃO ADICIONADA!\n","green")
-                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> NOVO ARQUIVO CADASTRADO!\n"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} --> NOVA REVISÃO ADICIONADA!\n","green")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} --> NOVO ARQUIVO CADASTRADO!\n"
                         if update.ValueError:
-                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> VERIFICAR ERRO!\n","red")
-                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
+                            self.en_view_LOGGER.insert(END,f"{basename(i)} --> VERIFICAR ERRO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
                         if update.statusDeleted:
-                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> EXCLUIDO!\n","red")
-                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> EXCLUÍDO!\n"
+                            self.en_view_LOGGER.insert(END,f"{basename(i)} --> EXCLUIDO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{basename(i)} --> EXCLUÍDO!\n"
                         
                         self.en_view_LOGGER.see(END)
                         self.en_view_LOGGER["state"]="disabled"
@@ -192,8 +190,8 @@ class Application(FileMovimentation):
                         not_add += 1
                         
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> REVISÃO\n", "red")
-                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> NÃO FOI POSSÍVEL ALTERAR ESTE ARQUIVO VERIFICAR SE A REVISÃO ESTÁ ATUALIZADA, VIA DÚVIDAS COMUNICAR A MODERAÇÃO\n"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} --> REVISÃO\n", "red")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} --> NÃO FOI POSSÍVEL ALTERAR ESTE ARQUIVO VERIFICAR SE A REVISÃO ESTÁ ATUALIZADA, VIA DÚVIDAS COMUNICAR A MODERAÇÃO\n"
                         self.en_view_LOGGER["state"] = "disabled"
                         
                 self.logGeneral = self.logGeneral + "\nRESUMO: "
@@ -237,7 +235,7 @@ class Application(FileMovimentation):
 
                     
     def logGenerator(self):
-        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {dt.datetime.now().strftime('%d/%m/%Y %H:%M')}\nCódigo da atualização: {self.txtName}\n-------------------------------------------------------------\n{self.logGeneral}\n"
+        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\nCódigo da atualização: {self.txtName}\n-------------------------------------------------------------\n{self.logGeneral}\n"
         print(text1)
         with open(f"{self.en_LOCALANTIGO}\\{self.en_AUTOR.get()}-{self.txtName}.txt","w+") as fp:
             fp.write(text1)    

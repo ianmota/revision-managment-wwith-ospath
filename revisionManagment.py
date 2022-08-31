@@ -1,4 +1,3 @@
-import shutil
 import os
 
 class FileMovimentation():
@@ -8,48 +7,23 @@ class FileMovimentation():
         self.destino = destino
 
     def NameSplit(self):
-        quebra01 = self.FileName().split(".")
-        text = quebra01[0]
-        return text[-2:]
-
-    def VerPrefix(self):
-        if "R" in self.NameSplit():
-            return(self.NameSplit().split("R")[1])
+        return self.arquivo[-6:-4]
     
-    def RevisionWithoutPrefix(self):
+    def OldReview(self):
         
         if(int(self.NameSplit())<=10):
-            versao_ = int(self.NameSplit())-1
+            versao_ = int(self.NameSplit()) - 1
             versaoAnterior = f"0{versao_}."
-            revisaoAntiga = self.FileName().replace(f"{self.NameSplit()}.",versaoAnterior)
+            revisaoAntiga = self.arquivo.replace(f"{self.NameSplit()}.",versaoAnterior)
             
         elif(int(self.versao02)>10):
-            versao_ = int(self.NameSplit())-1
+            versao_ = int(self.NameSplit()) - 1
             versaoAnterior = f"{versao_}."
-            revisaoAntiga = self.FileName().replace(f"{self.NameSplit()}.",versaoAnterior)
+            revisaoAntiga = self.arquivo.replace(f"{self.NameSplit()}.",versaoAnterior)
 
         return revisaoAntiga
     
-    def RevisionPrefix(self):
-        
-        if(int(self.VerPrefix())<=10):
-            versao_ = int(self.VerPrefix())-1
-            versaoAnterior = f"0{versao_}."
-            revisaoAntiga = self.FileName().replace(f"{self.VerPrefix()}.",versaoAnterior)
-            
-        elif(int(self.VerPrefix())>10):
-            versao_ = int(self.VerPrefix())-1
-            versaoAnterior = f"{versao_}."
-            revisaoAntiga = self.FileName().replace(f"{self.VerPrefix()}.",versaoAnterior)
 
-        return revisaoAntiga
-        
-    def FileName(self):
-        return(os.path.basename(self.arquivo))
-    
-    def GetFilesInDir(self):
-        destino = self.destino
-        return(os.listdir(destino))
         
 
     

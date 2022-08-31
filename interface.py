@@ -1,81 +1,89 @@
-import base64
-from codecs import escape_encode
-from email.mime import base
+
 import tkinter as tk
-from tkinter import END, filedialog
+from tkinter import END, N, filedialog
 from tkinter.scrolledtext import ScrolledText
 from revisionManagment import *
 from base64 import b64decode
+import shutil
+from filesConflicted import FileConflicted
+import datetime as dt
+import random
+import string
 
 class Application(FileMovimentation):
     def __init__(self):
         
-        
         self.root = tk.Tk()
+        self.GlobalVariable()
         self.logo()
-        
         self.lc = tk.PhotoImage(data=b64decode(self.logoCubo))
         self.root.iconphoto(True,self.lc)
-        
-        self.str_DESTINO = tk.StringVar()
-        self.str_ARQUIVOS = tk.StringVar()
-        self.str_LOCALANTIGO = tk.StringVar()
-        
         self.Root01()
-        
         self.BotoesRoot01()
         self.LabelsRoot01()
         self.EntryRoot01()
         self.TagConfig()
-        
         self.root.mainloop()
-        
     
+    def GlobalVariable(self):
+        
+        self.str_DESTINO = tk.StringVar()
+        self.str_ARQUIVOS = tk.StringVar()
+        self.str_LOCALANTIGO = tk.StringVar()
+        self.logGeneral = str()
+        self.txtName = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        
     def Root01(self):
         self.root.title("Revisão Updater")  
-        self.root.geometry("600x200")
+        self.root.geometry("600x230")
         self.root.resizable(False,False)
         
     def BotoesRoot01(self):
-        self.bt_DESTINO = tk.Button(self.root,text="Local",command=self.AskDirectory)
-        self.bt_DESTINO.place(x=470,y=5,width=120)
+        bt_DESTINO = tk.Button(self.root,text="Local",command=self.AskDirectory)
+        bt_DESTINO.place(x=470,y=35,width=120)
         
-        self.bt_ARQUIVOS = tk.Button(self.root,text="Local",command=self.AskOpenFiles)
-        self.bt_ARQUIVOS.place(x=470,y=35,width=120)
+        bt_ARQUIVOS = tk.Button(self.root,text="Local",command=self.AskOpenFiles)
+        bt_ARQUIVOS.place(x=470,y=65,width=120)
         
-        self.bt_LOCALANTIGO = tk.Button(self.root,text="Local",command=self.FilesReload)
-        self.bt_LOCALANTIGO.place(x=470,y=65,width=120)
+        bt_LOCALANTIGO = tk.Button(self.root,text="Local",command=self.FilesReload)
+        bt_LOCALANTIGO.place(x=470,y=95,width=120)
         
-        self.bt_CONFIRMAR = tk.Button(self.root,text="Confirmar",command=self.VerDir)
-        self.bt_CONFIRMAR.place(x=55,y=170,width=120)
+        bt_CONFIRMAR = tk.Button(self.root,text="Confirmar",command=self.VerDir)
+        bt_CONFIRMAR.place(x=55,y=200,width=120)
     
     def LabelsRoot01(self):
-        self.lb_DESTINO = tk.Label(self.root, text= "Selecione o destino: ",border=10 )
-        self.lb_DESTINO.place(x=10,y=1)
+        lb_AUTOR = tk.Label(self.root, text= "Autor: ",border=10 )
+        lb_AUTOR.place(x=50,y=1)
         
-        self.lb_ARQUIVOS = tk.Label(self.root, text= "Selecione os arquivos: " )
-        self.lb_ARQUIVOS.place(x=10,y=37.5)
+        lb_DESTINO = tk.Label(self.root, text= "Selecione o destino: ",border=10 )
+        lb_DESTINO.place(x=10,y=31)
         
-        self.lb_LOCALANTIGO = tk.Label(self.root, text= "Local das revisões antigas: " )
-        self.lb_LOCALANTIGO.place(x=10,y=70)
+        lb_ARQUIVOS = tk.Label(self.root, text= "Selecione os arquivos: " )
+        lb_ARQUIVOS.place(x=10,y=67.5)
+        
+        lb_LOCALANTIGO = tk.Label(self.root, text= "Local das revisões antigas: " )
+        lb_LOCALANTIGO.place(x=10,y=100)
     
     def EntryRoot01(self):
         
+        self.en_AUTOR = tk.Entry(self.root)
+        self.en_AUTOR.place(x=140,y=7.5,width=320)
+        
         self.en_view_DESTINO = tk.Entry(self.root,state="disabled",textvariable=self.str_DESTINO)
-        self.en_view_DESTINO.place(x=140,y=7.5,width=320)
+        self.en_view_DESTINO.place(x=140,y=37.5,width=320)
         
         self.en_view_ARQUIVOS = tk.Entry(self.root,state="disabled",textvariable=self.str_ARQUIVOS)
-        self.en_view_ARQUIVOS.place(x=140,y=37.5,width=320)
+        self.en_view_ARQUIVOS.place(x=140,y=67.5,width=320)
         
         self.en_view_LOCALANTIGO = tk.Entry(self.root,state="disabled",textvariable=self.str_LOCALANTIGO)
-        self.en_view_LOCALANTIGO.place(x=160,y=70,width=300)
+        self.en_view_LOCALANTIGO.place(x=160,y=100,width=300)
         
         self.en_view_LOGGER = ScrolledText(self.root,state="disabled")
-        self.en_view_LOGGER.place(x=230,y=110,width=330, height=80)
+        self.en_view_LOGGER.place(x=230,y=140,width=330, height=80)
         
     def AskDirectory(self):
         self.en_DESTINO = filedialog.askdirectory()
-        self.str_DESTINO.set(self.en_DESTINO)
+        self.str_DESTINO.set(os.path.abspath(self.en_DESTINO))
 
         if self.en_DESTINO:
             if "Antigo" in os.listdir(self.en_DESTINO):
@@ -83,12 +91,12 @@ class Application(FileMovimentation):
             else:
                 self.en_LOCALANTIGO = f"{self.en_DESTINO}\\Antigos"
 
-            self.str_LOCALANTIGO.set(self.en_LOCALANTIGO)
+            self.str_LOCALANTIGO.set(os.path.abspath(self.en_LOCALANTIGO))
 
         
     def AskOpenFiles(self):
         self.en_ARQUIVOS = filedialog.askopenfilenames()
-        
+         
         u = ""
         for i in self.en_ARQUIVOS:
             u = u + f"{os.path.basename(i)}, "
@@ -102,76 +110,119 @@ class Application(FileMovimentation):
         
     def VerDir(self):
         try:
-            if self.en_DESTINO and self.en_ARQUIVOS:
+            if self.en_DESTINO and self.en_ARQUIVOS and self.en_AUTOR.get() != "":
                 
                 self.en_view_LOGGER["state"]="normal"
                 self.en_view_LOGGER.delete(1.0,END)
                 self.en_view_LOGGER["state"]="disabled"
-                
+
                 add = 0
                 not_add = 0
                 
+                if not os.path.exists(self.en_LOCALANTIGO):
+                    os.mkdir(self.en_LOCALANTIGO)
+                self.logGeneral = self.logGeneral + "\nATUALIZANDO A PASTA DE DESTINO:\n"
+                for u in os.listdir(self.en_DESTINO):
+                    arquivo = os.path.join(self.en_DESTINO,u)
+                    conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
+                    conflito.OldConflicted()
+                    self.en_view_LOGGER["state"] = "normal"
+                    if conflito.statusUpdate:
+                        self.en_view_LOGGER.insert(END,f"{u} --> ATUALIZADO\n","gray")
+                        self.logGeneral = self.logGeneral + f"{u} --> MOVIDO PARA {os.path.abspath(self.en_LOCALANTIGO)}\n"
+                    if conflito.ValueError:
+                        self.en_view_LOGGER.insert(END,f"{u} --> VERIFICAR ERRO!\n","red")
+                        self.logGeneral = self.logGeneral + f"{u} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
+                    if conflito.statusDeleted:
+                        self.en_view_LOGGER.insert(END,f"{u} --> EXCLUIDO!\n","red")
+                        self.logGeneral = self.logGeneral + f"{u} --> EXCLUÍDO\n"
+                    self.en_view_LOGGER.see(END)
+                    self.en_view_LOGGER["state"]="disabled"
+                
+                self.logGeneral = self.logGeneral + "\nATUALIZANDO OS ARQUIVOS SELECIONADOS: \n"
                 for i in self.en_ARQUIVOS:
-                    update = FileMovimentation(i,self.en_DESTINO)
-                    os.chdir(self.en_DESTINO)
-                    update.FileName()
-                    update.NameSplit()
+                    update = FileConflicted(i,self.en_DESTINO,self.en_LOCALANTIGO)
+                    update.OldConflicted()
+                    update.EqualConflicted()
+                    update.NewFile()
                     
-                    if update.VerPrefix():
-                        revisaoAntiga = update.RevisionPrefix()
-                    else:
-                        revisaoAntiga = update.RevisionWithoutPrefix()
-                    
-                    if revisaoAntiga in update.GetFilesInDir():
-                        arquivoAntigo = os.path.abspath(update.GetFilesInDir()[update.GetFilesInDir().index(revisaoAntiga)])
-
-                        
-                        if not os.path.exists(self.en_LOCALANTIGO):
-                            os.mkdir(self.en_LOCALANTIGO)
-                            
-                        shutil.move(arquivoAntigo,self.en_LOCALANTIGO)
-                        
+                    if update.statusUpdate:                        
                         shutil.move(i,self.en_DESTINO)
-                        
                         add += 1
                         
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> OK","green")
+                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> ATUALIZADO!\n","green")
+                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> ARQUIVO ATUALIZADO, MOVIDO PARA {os.path.abspath(self.en_DESTINO)}\n"
+                        if update.ValueError:
+                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> VERIFICAR ERRO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
+                        if update.statusDeleted:
+                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> EXCLUIDO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> EXCLUÍDO!\n"
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+                    
+                    elif update.statusEqual:
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> JÁ EXISTE!\n","red")
+                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> A REVISÃO INDICADA JÁ EXISTE NA PASTA!\n"
                         self.en_view_LOGGER.see(END)
                         self.en_view_LOGGER["state"]="disabled"
                         
+                        not_add += 1
+                    
+                    elif update.statusNewReview:
+                        shutil.move(i,self.en_DESTINO)
+                        add += 1
+                        
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> NOVA REVISÃO ADICIONADA!\n","green")
+                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> NOVO ARQUIVO CADASTRADO!\n"
+                        if update.ValueError:
+                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> VERIFICAR ERRO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
+                        if update.statusDeleted:
+                            self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> EXCLUIDO!\n","red")
+                            self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> EXCLUÍDO!\n"
+                        
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+ 
                     else:
                         not_add += 1
                         
                         self.en_view_LOGGER["state"] = "normal"
-                        self.en_view_LOGGER.insert(END,f"\n{update.FileName()} --> REVISÃO", "red")
-                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER.insert(END,f"{os.path.basename(i)} --> REVISÃO\n", "red")
+                        self.logGeneral = self.logGeneral + f"{os.path.basename(i)} --> NÃO FOI POSSÍVEL ALTERAR ESTE ARQUIVO VERIFICAR SE A REVISÃO ESTÁ ATUALIZADA, VIA DÚVIDAS COMUNICAR A MODERAÇÃO\n"
                         self.en_view_LOGGER["state"] = "disabled"
-                    
+                        
+                self.logGeneral = self.logGeneral + "\nRESUMO: "
                 self.en_view_LOGGER["state"] = "normal"
                 self.en_view_LOGGER.insert(END,f"\n{add} --> ADICIONADOS\n{not_add} --> NÃO ADICIONADOS")
+                self.logGeneral = self.logGeneral + f"\n{add} --> ARQUIVOS ALTERADOS\n{not_add} --> ARQUIVOS PARA REVISAR\n"
                 self.en_view_LOGGER.see(END)
                 self.en_view_LOGGER["state"] = "disabled"
-            
+
+                self.logGenerator()
             else:
+                    
                     self.en_view_LOGGER["state"] = "normal"
                     self.en_view_LOGGER.delete(1.0,END)
-                    self.en_view_LOGGER.insert(END,"\nO destino não foi adicionado", "red")
-                    self.en_view_LOGGER.see(END)
-                    self.en_view_LOGGER["state"] = "disabled"
-                
-                    self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,"\nArquivos não selecionados", "red")
+                    self.en_view_LOGGER.insert(END,"INDICAR AUTOR\n", "red")
                     self.en_view_LOGGER.see(END)
                     self.en_view_LOGGER["state"] = "disabled"
                     
         except AttributeError:
+                self.en_view_LOGGER["state"] = "normal"
+                self.en_view_LOGGER.delete(1.0,END)
+                self.en_view_LOGGER.see(END)
+                self.en_view_LOGGER["state"] = "disabled"
+                
                 try: 
                     self.en_DESTINO in globals()
                 except AttributeError:
                     self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.delete(1.0,END)
-                    self.en_view_LOGGER.insert(END,"\nO destino não foi adicionado", "red")
+                    self.en_view_LOGGER.insert(END,"INDICAR DESTINO\n", "red")
                     self.en_view_LOGGER.see(END)
                     self.en_view_LOGGER["state"] = "disabled"
                 
@@ -179,15 +230,18 @@ class Application(FileMovimentation):
                     self.en_ARQUIVOS in globals()
                 except AttributeError:
                     self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,"\nArquivos não selecionados", "red")
+                    self.en_view_LOGGER.insert(END,"INDICAR ARQUIVOS\n", "red")
                     self.en_view_LOGGER.see(END)
                     self.en_view_LOGGER["state"] = "disabled"
-                    
-                    
-                    
-                    
+                
 
-
+                    
+    def logGenerator(self):
+        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {dt.datetime.now().strftime('%d/%m/%Y %H:%M')}\nCódigo da atualização: {self.txtName}\n-------------------------------------------------------------\n{self.logGeneral}\n"
+        print(text1)
+        with open(f"{self.en_LOCALANTIGO}\\{self.en_AUTOR.get()}-{self.txtName}.txt","w+") as fp:
+            fp.write(text1)    
+        
     def TagConfig(self):
         self.en_view_LOGGER.tag_config("red", foreground="red")
         self.en_view_LOGGER.tag_config("gray", foreground="gray")

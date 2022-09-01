@@ -1,5 +1,5 @@
 import tkinter as tk
-from os.path import abspath, basename, exists, join 
+from os.path import abspath, basename, exists, join , isdir, isfile
 from os import listdir, mkdir
 from tkinter import END, filedialog
 from tkinter.scrolledtext import ScrolledText
@@ -30,7 +30,7 @@ class Application():
         self.str_ARQUIVOS = tk.StringVar()
         self.str_LOCALANTIGO = tk.StringVar()
         self.logGeneral = str()
-        self.txtName = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        self.txtName = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10)) #Código aleatório
         
     def Root01(self):
         self.root.title("Revisão Updater")  
@@ -64,19 +64,21 @@ class Application():
         lb_LOCALANTIGO.place(x=10,y=100)
     
     def EntryRoot01(self):
-        self.en_AUTOR = tk.Entry(self.root)
+        self.en_AUTOR = tk.Entry(self.root,font=("Arial", 8),borderwidth="0",highlightcolor="#e5e5e5",highlightthickness="2",relief="flat",selectborderwidth="0")
         self.en_AUTOR.place(x=140,y=7.5,width=320)
         
-        self.en_view_DESTINO = tk.Entry(self.root,state="disabled",textvariable=self.str_DESTINO)
+        self.en_view_DESTINO = tk.Entry(self.root,state="disabled",textvariable=self.str_DESTINO,font=("Arial", 8),background="#f0f0f0",highlightbackground="#e5e5e5",borderwidth="0",highlightcolor="#e5e5e5",highlightthickness="2",relief="flat",selectborderwidth="0")
         self.en_view_DESTINO.place(x=140,y=37.5,width=320)
         
-        self.en_view_ARQUIVOS = tk.Entry(self.root,state="disabled",textvariable=self.str_ARQUIVOS)
+        self.en_view_ARQUIVOS = tk.Entry(self.root,state="disabled",textvariable=self.str_ARQUIVOS,font=("Arial", 8),background="#f0f0f0",highlightbackground="#e5e5e5",borderwidth="0",highlightcolor="#e5e5e5",highlightthickness="2",relief="flat",selectborderwidth="0")
         self.en_view_ARQUIVOS.place(x=140,y=67.5,width=320)
         
-        self.en_view_LOCALANTIGO = tk.Entry(self.root,state="disabled",textvariable=self.str_LOCALANTIGO)
+        self.en_view_LOCALANTIGO = tk.Entry(self.root,state="disabled",textvariable=self.str_LOCALANTIGO,font=("Arial", 8),background="#f0f0f0",highlightbackground="#e5e5e5",borderwidth="0",highlightcolor="#e5e5e5",highlightthickness="2",relief="flat",selectborderwidth="0")
         self.en_view_LOCALANTIGO.place(x=160,y=100,width=300)
         
         self.en_view_LOGGER = ScrolledText(self.root,state="disabled")
+        self.en_view_LOGGER.configure(background='#f0f0f0', borderwidth='0', highlightbackground='#e5e5e5', font=("Arial", 7))
+        self.en_view_LOGGER.configure(highlightcolor='#e5e5e5', highlightthickness='2', relief='flat', selectborderwidth='0')
         self.en_view_LOGGER.place(x=230,y=140,width=330, height=80)
         
     def AskDirectory(self):
@@ -121,13 +123,17 @@ class Application():
                     mkdir(self.en_LOCALANTIGO)
                 self.logGeneral = self.logGeneral + "\nATUALIZANDO A PASTA DE DESTINO:\n"
                 for u in listdir(self.en_DESTINO):
+                    if isdir(join(self.en_DESTINO,u)):
+                        continue
+                    
                     arquivo = join(self.en_DESTINO,u)
                     conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
                     conflito.OldConflicted()
                     self.en_view_LOGGER["state"] = "normal"
-                    if conflito.statusUpdate:
-                        self.en_view_LOGGER.insert(END,f"{u} --> ATUALIZADO\n","gray")
-                        self.logGeneral = self.logGeneral + f"{u} --> MOVIDO PARA {abspath(self.en_LOCALANTIGO)}\n"
+                    if conflito.arquivosAtualizados:
+                        for log in conflito.arquivosAtualizados:
+                            self.en_view_LOGGER.insert(END,f"{log} --> ATUALIZADO\n","gray")
+                            self.logGeneral = self.logGeneral + f"{log} --> MOVIDO PARA {abspath(self.en_LOCALANTIGO)}\n"
                     if conflito.ValueError:
                         self.en_view_LOGGER.insert(END,f"{u} --> VERIFICAR ERRO!\n","red")
                         self.logGeneral = self.logGeneral + f"{u} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
@@ -138,7 +144,11 @@ class Application():
                     self.en_view_LOGGER["state"]="disabled"
                 
                 self.logGeneral = self.logGeneral + "\nATUALIZANDO OS ARQUIVOS SELECIONADOS: \n"
+                
                 for i in self.en_ARQUIVOS:
+                    if isdir(i):
+                        continue
+                    
                     update = FileConflicted(i,self.en_DESTINO,self.en_LOCALANTIGO)
                     update.OldConflicted()
                     update.EqualConflicted()
@@ -176,9 +186,6 @@ class Application():
                         self.en_view_LOGGER["state"] = "normal"
                         self.en_view_LOGGER.insert(END,f"{basename(i)} --> NOVA REVISÃO ADICIONADA!\n","green")
                         self.logGeneral = self.logGeneral + f"{basename(i)} --> NOVO ARQUIVO CADASTRADO!\n"
-                        if update.ValueError:
-                            self.en_view_LOGGER.insert(END,f"{basename(i)} --> VERIFICAR ERRO!\n","red")
-                            self.logGeneral = self.logGeneral + f"{basename(i)} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
                         if update.statusDeleted:
                             self.en_view_LOGGER.insert(END,f"{basename(i)} --> EXCLUIDO!\n","red")
                             self.logGeneral = self.logGeneral + f"{basename(i)} --> EXCLUÍDO!\n"
@@ -235,10 +242,10 @@ class Application():
 
                     
     def logGenerator(self):
-        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\nCódigo da atualização: {self.txtName}\n-------------------------------------------------------------\n{self.logGeneral}\n"
-        print(text1)
-        with open(f"{self.en_LOCALANTIGO}\\{self.en_AUTOR.get()}-{self.txtName}.txt","w+") as fp:
-            fp.write(text1)    
+        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n-------------------------------------------------------------\n{self.logGeneral}\n"
+        with open(f"{self.en_LOCALANTIGO}\\Atualização {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}-{self.en_AUTOR.get()}.txt","w+") as fp:
+            fp.write(text1)   
+        self.logGeneral = "" 
         
     def TagConfig(self):
         self.en_view_LOGGER.tag_config("red", foreground="red")

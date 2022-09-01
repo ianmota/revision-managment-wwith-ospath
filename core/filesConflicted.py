@@ -11,12 +11,13 @@ class FileConflicted():
         self.GlobalVariables()
         
     def GlobalVariables(self):
-        self.statusUpdate = bool()
-        self.ValueError = bool()
-        self.statusEqual = bool()
-        self.statusOld = bool()
-        self.statusDeleted = bool()
-        self.statusNewReview = bool()
+        self.statusUpdate = False
+        self.arquivosAtualizados = []
+        self.ValueError = False
+        self.statusEqual = False
+        self.statusOld = False
+        self.statusDeleted = False
+        self.statusNewReview = False
         
     def OldConflicted(self):
         flag = False
@@ -24,24 +25,40 @@ class FileConflicted():
             if i in self.arquivo.lower():
                 flag = True
                 break
-                
+        
+        FileType = basename(self.arquivo).split(".")
         if flag:
             remove(self.arquivo)
             self.statusDeleted = True
+        elif len(FileType)>3:
+                self.ValueError = True
         else:
-
-                update = FileMovimentation(self.arquivo,self.origem)
-                dirFiles = list()
-                self.statusDeleted = False
-                for i in listdir(self.origem):
-                    dirFiles.append(i.lower())
+                
                 try:
-                    if basename(update.OldReview()).lower() in dirFiles:
-                        arquivo = join(self.origem,basename(update.OldReview()))
-                        move(arquivo,self.destino)
-                        self.statusUpdate = True
-                    else:
-                        self.statusUpdate = False
+                    update = FileMovimentation(self.arquivo,self.origem)
+                    revisaoAvaliada = int(update.NameSplit())
+                    
+                    dirFiles = list()
+                    for i in listdir(self.origem):
+                        arquivo = i.lower()
+                        dirFiles.append(arquivo)
+                    
+                    while revisaoAvaliada > 0:
+                        fileVerification = basename(update.OldReview()).lower()
+                        
+                        for filename in dirFiles:
+                            if fileVerification[:-4] in filename:
+                    
+                                arquivo = join(self.origem,filename.upper())
+                                move(arquivo,self.destino)
+                                
+                                self.arquivosAtualizados.append(filename.upper())
+                            else:
+                                self.statusUpdate = False
+                            
+                        update = FileMovimentation(update.OldReview(),self.origem)
+                        revisaoAvaliada -= 1
+                        
                 except ValueError:
                     self.ValueError = True
                 
@@ -54,8 +71,6 @@ class FileConflicted():
 
         if arquivoName in dirFiles:
             self.statusEqual = True
-        else:
-            self.statusEqual = False
     
     def NewConflicted(self):
         pass
@@ -70,20 +85,12 @@ class FileConflicted():
                 break
             
         for i in listdir(self.origem):
-            dirFiles.append(i.lower())
+            aName = i.lower()
+            dirFiles.append(aName[:-8])
         
-        self.statusDeleted = False
         if flag:
             remove(self.arquivo)
             self.statusDeleted = True
-        elif arquivoName not in dirFiles:
-            self.ValueError = False
-            try:
-                
-                update = FileMovimentation(self.arquivo,self.origem)
-                if update.NameSplit() == "00":
-                    self.statusNewReview = True
-                else:
-                    self.statusNewReview = False
-            except ValueError:
-                self.ValueError = True
+        elif arquivoName[:-8] not in dirFiles:
+            self.statusNewReview = True
+

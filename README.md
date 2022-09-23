@@ -24,7 +24,7 @@ As seguintes ferramentas foram usadas na construção do projeto:
 <a href="https://www.linkedin.com/in/ian-mota-164a36195/">
  <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/95248335?v=4" width="100px;" alt=""/>
  <br />
-	<sub><b>Ian Mota</b></sub>
+	<sub><b>Ian Mota 🚀</b></sub>
 </a>
 
 Feito com ❤️ por Ian Mota 👋🏽 Entre em contato!

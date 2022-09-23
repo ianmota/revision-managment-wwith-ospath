@@ -22,11 +22,9 @@ As seguintes ferramentas foram usadas na construção do projeto:
 ### Autor
 ---
 
- <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/95248335?v=4" width="100px;" alt=""/>
- <br />
- <sub><b>Ian Mota </b></sub></a> <a href="https://www.linkedin.com/in/ian-mota-164a36195/">Ian Mota 🚀</a>
-
-
+<img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/95248335?v=4" width="100px;" alt=""/>
+<br />
+<sub><b href="https://www.linkedin.com/in/ian-mota-164a36195/">Ian Mota 🚀 </b></sub></a> 
 Feito com ❤️ por Ian Mota 👋🏽 Entre em contato!
 
 [![Gmail Badge](https://img.shields.io/badge/-ianmotabr@gmail.com-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:ianmotabr@gmail.com)]

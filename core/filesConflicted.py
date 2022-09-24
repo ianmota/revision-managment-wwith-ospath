@@ -1,6 +1,6 @@
 from core.revisionManagment import FileMovimentation
 from os import remove, listdir
-from os.path import join, basename
+from os.path import join, basename, isfile
 from shutil import move
 
 class FileConflicted():
@@ -25,13 +25,22 @@ class FileConflicted():
             if i in self.arquivo.lower():
                 flag = True
                 break
+        for i in ["dwg","pdf","dxf"]:
+            if i in self.arquivo.lower():
+                flag2 = False
+                break
+            else:
+                flag2 = True
+                
         
         FileType = basename(self.arquivo).split(".")
         if flag:
             remove(self.arquivo)
             self.statusDeleted = True
-        elif len(FileType)>3:
+        elif len(FileType[1])>3:
                 self.ValueError = True
+        elif flag2:
+            self.ValueError = True
         else:
                 
                 try:
@@ -50,7 +59,13 @@ class FileConflicted():
                             if fileVerification[:-4] in filename:
                     
                                 arquivo = join(self.origem,filename.upper())
-                                move(arquivo,self.destino)
+                                arquivoAntigo = join(self.destino,filename.upper())
+                                if isfile(arquivoAntigo):
+                                    remove(arquivoAntigo)
+                                    move(arquivo,self.destino)
+                                else:
+                                    move(arquivo,self.destino)
+                                    
                                 
                                 self.arquivosAtualizados.append(filename.upper())
                             else:

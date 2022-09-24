@@ -111,7 +111,6 @@ class Application():
     def VerDir(self):
         try:
             if self.en_DESTINO and self.en_ARQUIVOS and self.en_AUTOR.get() != "":
-                
                 self.en_view_LOGGER["state"]="normal"
                 self.en_view_LOGGER.delete(1.0,END)
                 self.en_view_LOGGER["state"]="disabled"
@@ -121,7 +120,10 @@ class Application():
                 
                 if not exists(self.en_LOCALANTIGO):
                     mkdir(self.en_LOCALANTIGO)
+                
                 self.logGeneral = self.logGeneral + "\nATUALIZANDO A PASTA DE DESTINO:\n"
+                    
+                self.en_view_LOGGER["state"] = "normal"
                 for u in listdir(self.en_DESTINO):
                     if isdir(join(self.en_DESTINO,u)):
                         continue
@@ -129,21 +131,25 @@ class Application():
                     arquivo = join(self.en_DESTINO,u)
                     conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
                     conflito.OldConflicted()
-                    self.en_view_LOGGER["state"] = "normal"
+                    
                     if conflito.arquivosAtualizados:
                         for log in conflito.arquivosAtualizados:
                             self.en_view_LOGGER.insert(END,f"{log} --> ATUALIZADO\n","gray")
                             self.logGeneral = self.logGeneral + f"{log} --> MOVIDO PARA {abspath(self.en_LOCALANTIGO)}\n"
+                            
                     if conflito.ValueError:
                         self.en_view_LOGGER.insert(END,f"{u} --> VERIFICAR ERRO!\n","red")
                         self.logGeneral = self.logGeneral + f"{u} --> VERIFICAR SE É UM ARQUIVO E SE ESTÁ DENTRO DO PADRÃO\n"
                     if conflito.statusDeleted:
                         self.en_view_LOGGER.insert(END,f"{u} --> EXCLUIDO!\n","red")
                         self.logGeneral = self.logGeneral + f"{u} --> EXCLUÍDO\n"
-                    self.en_view_LOGGER.see(END)
-                    self.en_view_LOGGER["state"]="disabled"
+                
+                self.en_view_LOGGER.see(END)
+                self.en_view_LOGGER["state"]="disabled"
                 
                 self.logGeneral = self.logGeneral + "\nATUALIZANDO OS ARQUIVOS SELECIONADOS: \n"
+
+                print(self.logGeneral)
                 
                 for i in self.en_ARQUIVOS:
                     if isdir(i):
@@ -200,6 +206,8 @@ class Application():
                         self.en_view_LOGGER.insert(END,f"{basename(i)} --> REVISÃO\n", "red")
                         self.logGeneral = self.logGeneral + f"{basename(i)} --> NÃO FOI POSSÍVEL ALTERAR ESTE ARQUIVO VERIFICAR SE A REVISÃO ESTÁ ATUALIZADA, VIA DÚVIDAS COMUNICAR A MODERAÇÃO\n"
                         self.en_view_LOGGER["state"] = "disabled"
+                
+
                         
                 self.logGeneral = self.logGeneral + "\nRESUMO: "
                 self.en_view_LOGGER["state"] = "normal"
@@ -242,7 +250,7 @@ class Application():
 
                     
     def logGenerator(self):
-        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n-------------------------------------------------------------\n{self.logGeneral}\n"
+        text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n-------------------------------------------------------------\n{self.logGeneral}\n\nOBS: ATUALIZAÇÃO APENAS DE DWG, PDF E DXF"
         with open(f"{self.en_LOCALANTIGO}\\Atualização {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}-{self.en_AUTOR.get()}.txt","w+") as fp:
             fp.write(text1)   
         self.logGeneral = "" 

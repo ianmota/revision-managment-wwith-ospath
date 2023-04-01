@@ -1,111 +1,94 @@
-from core.revisionManagment import FileMovimentation
-from os import remove, listdir
-from os.path import join, basename, isfile
-from shutil import move
+from core.revisionManagment import FileAnalysys as fa
+import os.path as op
+from os import listdir
+import json
 
 class FileConflicted():
-    def __init__(self,arquivo:str,origem:str,destino:str = "") -> None:
-        self.arquivo = arquivo
-        self.origem = origem
-        self.destino = destino
+    def __init__(self,path_do_arquivo:op,pasta_destino:str,pasta_de_antigos:str = "") -> None:
+        self.arquivo = path_do_arquivo
+        self.origem = pasta_destino
+        self.destino = pasta_de_antigos
         self.GlobalVariables()
         
     def GlobalVariables(self):
-        self.statusUpdate = False
-        self.arquivosAtualizados = []
-        self.ValueError = False
-        self.statusEqual = False
-        self.statusOld = False
-        self.statusDeleted = False
+  
+        self.arquivosAtualizados = list()
+        self.erro = str()
         self.statusNewReview = False
-        
-    def OldConflicted(self):
-        flag = False
-        for i in ["bak","dwl"]:
-            if i in self.arquivo.lower():
-                flag = True
-                break
-        for i in ["dwg","pdf","dxf"]:
-            if i in self.arquivo.lower():
-                flag2 = False
-                break
-            else:
-                flag2 = True
-                
-        
-        FileType = basename(self.arquivo).split(".")
-        if flag:
-            remove(self.arquivo)
-            self.statusDeleted = True
-        elif len(FileType[1])>3:
-                self.ValueError = True
-        elif flag2:
-            self.ValueError = True
-        else:
-                
-                try:
-                    update = FileMovimentation(self.arquivo,self.origem)
-                    revisaoAvaliada = int(update.NameSplit())
-                    
-                    dirFiles = list()
-                    for i in listdir(self.origem):
-                        arquivo = i.lower()
-                        dirFiles.append(arquivo)
-                    
-                    while revisaoAvaliada > 0:
-                        fileVerification = basename(update.OldReview()).lower()
-                        
-                        for filename in dirFiles:
-                            if fileVerification[:-4] in filename:
-                    
-                                arquivo = join(self.origem,filename.upper())
-                                arquivoAntigo = join(self.destino,filename.upper())
-                                if isfile(arquivoAntigo):
-                                    remove(arquivoAntigo)
-                                    move(arquivo,self.destino)
-                                else:
-                                    move(arquivo,self.destino)
-                                    
-                                
-                                self.arquivosAtualizados.append(filename.upper())
-                            else:
-                                self.statusUpdate = False
-                            
-                        update = FileMovimentation(update.OldReview(),self.origem)
-                        revisaoAvaliada -= 1
-                        
-                except ValueError:
-                    self.ValueError = True
-                
     
-    def EqualConflicted(self):
-        arquivoName = basename(self.arquivo).lower()
-        dirFiles = list()
-        for i in listdir(self.origem):
-            dirFiles.append(i.lower())
+    def EqualFileNumbers(self) -> list:
+        # verificar se já existe arquivo deste tipo na pasta (retorna em todas as fases)
+        # quantos e quais
+        
+        fileNumber = fa(self.arquivo).FileNumber()
+        
+        fileNames = list()
 
-        if arquivoName in dirFiles:
-            self.statusEqual = True
+        if not fileNumber is None:
+            for _ in listdir(self.origem):
+                
+                if op.isfile(op.join(self.origem,_)):
+                    
+                    if fileNumber == fa(op.join(self.origem,_)).FileNumber():
+                        fileNames.append(_)
+
+        return fileNames
     
-    def NewConflicted(self):
-        pass
-    
-    def NewFile(self):
-        arquivoName = basename(self.arquivo).lower()
-        dirFiles = list()
-        flag = False
-        for i in ["bak","dwl"]:
-            if i in self.arquivo.lower():
-                flag = True
-                break
-            
-        for i in listdir(self.origem):
-            aName = i.lower()
-            dirFiles.append(aName[:-8])
+    def FileExists(self) -> bool:
+        if op.basename(self.arquivo) in self.EqualFileNumbers():
+            return True
+        else:
+            return False
         
-        if flag:
-            remove(self.arquivo)
-            self.statusDeleted = True
-        elif arquivoName[:-8] not in dirFiles:
-            self.statusNewReview = True
+    def OldConflicted(self) -> list:
+        # verificar se há revisões antigas na pasta
+  
+        if self.EqualFileNumbers():
+            if not fa(self.arquivo).CurrentVersion() is None:
+                
+                for _ in self.EqualFileNumbers():
+                    
+                        if fa(self.arquivo).CurrentVersion() > 0 and not fa(op.join(self.origem,_)).CurrentVersion() is None:
+                            
+                            if fa(self.arquivo).CurrentVersion() > fa(op.join(self.origem,_)).CurrentVersion():
+                                # colocar a versão desatualizada na pasta antigos
+                                self.arquivosAtualizados.append(op.join(self.origem,_))
+                            
+                            else:
+                                self.arquivosAtualizados.append(None)
+                            
+                        else:
+                            return False
+            else:
+                data = open("core\errorList.json")
+                self.erro = json.load(data)["rz2"]
+                data.close()
+
+                return self.erro
+            
+    def NewConflicted(self):
+        
+        if self.EqualFileNumbers():
+            
+            if not fa(self.arquivo).CurrentVersion() is None:
+                
+                i = 0
+                for _ in self.EqualFileNumbers():
+                    
+                    if not _ is None:
+                        if fa(self.arquivo).CurrentVersion() < fa(op.join(self.origem,_)).CurrentVersion():
+                                # colocar a versão desatualizada na pasta antigos
+                                i+=1
+                
+                if i > 0:
+                    return True
+                
+                if i == 0:
+                    return False
+                
+            else:
+                # erro
+                pass
+    
+
 

@@ -1,0 +1,7 @@
+{
+    "rz0" : "Processo bem sucedido!",
+    "rz1" : "Verificar se a revisão do arquivo está na última posição: XXX-XXX-...-REV",
+    "rz2" : "Verificar nomenclatura do arquivo. Não foi possível determinar suas informações",
+    "rz3" : "Verificar se a fase está inserida corretamente, não foi possível identificar: [AP, PE, PR, EX]"
+
+}

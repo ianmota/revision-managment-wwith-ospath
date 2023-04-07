@@ -13,6 +13,7 @@ class FileConflicted():
     def GlobalVariables(self):
   
         self.arquivosAtualizados = list()
+        self.erro_de_fase = list()
         self.erro = str()
         self.statusNewReview = False
     
@@ -42,21 +43,28 @@ class FileConflicted():
         
     def OldConflicted(self) -> list:
         # verificar se há revisões antigas na pasta
-  
+
+        # verifica se tem arquivos com mesmo numero na pasta
         if self.EqualFileNumbers():
+            # verifica se foi possível obter a versão do aruivo
             if not fa(self.arquivo).CurrentVersion() is None:
                 
                 for _ in self.EqualFileNumbers():
-                    
+                        # verifica se foi possível obter a versão do arquivo que esta na pasta
                         if fa(self.arquivo).CurrentVersion() > 0 and not fa(op.join(self.origem,_)).CurrentVersion() is None:
-                            
-                            if fa(self.arquivo).CurrentVersion() > fa(op.join(self.origem,_)).CurrentVersion():
-                                # colocar a versão desatualizada na pasta antigos
-                                self.arquivosAtualizados.append(op.join(self.origem,_))
-                            
+                            # verifica se os arquivos estão na mesma fase
+                            if fa(self.arquivo).Fase() == fa(op.join(self.origem,_)).Fase():
+                                # verifica se a versão do arquivo na pasta é inferior
+                                if fa(self.arquivo).CurrentVersion() > fa(op.join(self.origem,_)).CurrentVersion():
+                                    # colocar a versão desatualizada na pasta antigos
+                                    self.arquivosAtualizados.append(op.join(self.origem,_))
+                                
+                                else:
+                                    self.arquivosAtualizados.append(None)
+                                    
                             else:
-                                self.arquivosAtualizados.append(None)
-                            
+                                self.erro_de_fase.append(op.join(self.origem,_))
+                                
                         else:
                             return False
             else:
@@ -76,14 +84,22 @@ class FileConflicted():
                 for _ in self.EqualFileNumbers():
                     
                     if not _ is None:
-                        if fa(self.arquivo).CurrentVersion() < fa(op.join(self.origem,_)).CurrentVersion():
-                                # colocar a versão desatualizada na pasta antigos
-                                i+=1
-                
+                        # verifica se os arquivos estão na mesma fase
+                        if fa(self.arquivo).Fase() == fa(op.join(self.origem,_)).Fase():
+                            
+                            if fa(self.arquivo).CurrentVersion() < fa(op.join(self.origem,_)).CurrentVersion():
+                                    # colocar a versão desatualizada na pasta antigos
+                                    i+=1
+                        else:
+                            i -= 1 
                 if i > 0:
                     return True
                 
                 if i == 0:
+                    return False
+                
+                if i == -1:
+                    self.erro_de_fase.append(op.join(self.origem,_))
                     return False
                 
             else:

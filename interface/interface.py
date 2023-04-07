@@ -31,6 +31,10 @@ class Application():
         self.str_DESTINO = tk.StringVar()
         self.str_ARQUIVOS = tk.StringVar()
         self.str_LOCALANTIGO = tk.StringVar()
+        self.en_DESTINO = str()
+        self.en_ARQUIVOS = str()
+        self.en_LOCALANTIGO = str()
+        
         self.logGeneral = str()
         self.txtName = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10)) #Código aleatório
         
@@ -104,140 +108,209 @@ class Application():
         self.str_LOCALANTIGO.set(self.en_LOCALANTIGO)
         
     def VerDir(self):
-
-                
+        # faz as revisões dos arquivos
+        # OBS: não fazer por try-except, da merda depois
+        # verificar porque arquivos com erro não estão aparecendo no log (quando seleciono um arquivo que está dentro da pasta)
+        var = self.input_verification()
+        
         self.en_view_LOGGER["state"]="normal"
         self.en_view_LOGGER.delete(1.0,END)
-        self.en_view_LOGGER["state"]="disabled"
+        
+        # verifica se tem algum problema de entrada de dados
+        if var[0]:
+            self.en_view_LOGGER.insert(END,"Adicionar nome do responsável\n","red")
+      
+        if var[1]:
+            self.en_view_LOGGER.insert(END,"Adicionar pasta de destino\n","red")
 
-        add = 0
-        not_add = 0
-        
-        if not exists(self.en_LOCALANTIGO):
-            mkdir(self.en_LOCALANTIGO)
-        
-        self.logGeneral = self.logGeneral + "\nResumo das atualizações:\n\n1. Quanto aos arquivos desatualizados pré-existentes na pasta:\n\n"
+        if var[2]:
+            self.en_view_LOGGER.insert(END,"Adicionar pasta de arquivos antigos\n","red")
+           
+        if var[3]:
+            self.en_view_LOGGER.insert(END,"Selecionar os arquivos\n","red")
             
-        self.en_view_LOGGER["state"] = "normal"
-        
-        # atualização da pasta 
-        for u in listdir(self.en_DESTINO):
-            arquivo = abspath(join(self.en_DESTINO,u))
-            
-            if not isfile(arquivo):
-                continue
-            
-            
-            conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
-            conflito.OldConflicted()
-            
-            if conflito.arquivosAtualizados:
-                
-                for log in conflito.arquivosAtualizados:
-                    
-                    if not log is None and FileConflicted(log,self.en_LOCALANTIGO).FileExists():
-                        remove(join(self.en_LOCALANTIGO,basename(log)))
-                        move(log,self.en_LOCALANTIGO)
-                        
-                        self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
-                        self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))} sobrepondo um arquivo anterior\n"
-                        
-                    elif not log is None:
-                        move(log,self.en_LOCALANTIGO)
-                        self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
-                        self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))}\n"
-                    
-
-        self.en_view_LOGGER.see(END)
         self.en_view_LOGGER["state"]="disabled"
         
-        self.logGeneral = self.logGeneral + "\n2. Quanto aos arquivos selecionados para atualização:\n\n"
 
-        # atualização dos arquivos selecionados para o envio
-        for i in self.en_ARQUIVOS:
-            if not isfile(i):
-                continue
+        var2 = bool()
+        for _ in var:
+            if _ is None:
+                var2 = True
+            else:
+                var2 = False
+                break  
+        
+        # faz a revisão dos arquivos desatualizados e atualizados
+        if var2:
+            self.en_view_LOGGER["state"]="normal"
+            self.en_view_LOGGER.delete(1.0,END)
+            self.en_view_LOGGER["state"]="disabled"
+
+            add = 0
+            not_add = 0
             
-            update = FileConflicted(i,self.en_DESTINO,self.en_LOCALANTIGO)
-            update.OldConflicted()
+            if not exists(self.en_LOCALANTIGO):
+                mkdir(self.en_LOCALANTIGO)
             
-            if update.FileExists():
-                self.en_view_LOGGER["state"] = "normal"
-                self.en_view_LOGGER.insert(END,f"A versão {basename(i)} já existe!\n","red")
-                self.logGeneral = self.logGeneral + f"{basename(i)} não foi atualizado. Esta revisão já existe na pasta\n"
-                self.en_view_LOGGER.see(END)
-                self.en_view_LOGGER["state"]="disabled"
+            self.logGeneral = self.logGeneral + "\nResumo das atualizações:\n\n1. Quanto aos arquivos desatualizados pré-existentes na pasta:\n\n"
                 
-                not_add += 1
-                
-                continue
+            self.en_view_LOGGER["state"] = "normal"
             
-            elif update.arquivosAtualizados:
+            # atualização da pasta 
+            for u in listdir(self.en_DESTINO):
+                arquivo = abspath(join(self.en_DESTINO,u))
                 
-                self.en_view_LOGGER["state"] = "normal"
-                for log in update.arquivosAtualizados:
+                if not isfile(arquivo):
+                    continue
+                
+                
+                conflito = FileConflicted(arquivo,self.en_DESTINO,self.en_LOCALANTIGO)
+                conflito.OldConflicted()
+                
+                if conflito.arquivosAtualizados:
                     
-                    add += 1
-                    if not log is None and FileConflicted(log,self.en_LOCALANTIGO).FileExists():
-                        remove(join(self.en_LOCALANTIGO,basename(log)))
-                        move(log,self.en_LOCALANTIGO)
+                    for log in conflito.arquivosAtualizados:
                         
-                        self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
-                        self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))} sobrepondo um arquivo anterior\n"
+                        if not log is None and FileConflicted(log,self.en_LOCALANTIGO).FileExists():
+                            remove(join(self.en_LOCALANTIGO,basename(log)))
+                            move(log,self.en_LOCALANTIGO)
+                            
+                            self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
+                            self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))} sobrepondo um arquivo anterior\n"
+                            
+                        elif not log is None:
+                            move(log,self.en_LOCALANTIGO)
+                            self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
+                            self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))}\n"
+                
+                if conflito.erro_de_fase:
+                        self.en_view_LOGGER.insert(END,f"{basename(u)} tem fases diferentes!\n","red")
+                        self.logGeneral = self.logGeneral + f"{basename(u)} não foi atualizado. Verificar qual a fase atual do empreendimento\n"
+                        self.en_view_LOGGER.see(END)
+
                         
-                    elif not log is None:
-                        move(log,self.en_LOCALANTIGO)
-                        self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
-                        self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))}\n"
-                
-                    self.en_view_LOGGER.insert(END,f"{basename(i)} foi adicionado \n","green")
-                    self.logGeneral = self.logGeneral + f"{basename(log)} foi adicionado como versão atual do arquivo\n"
-                
-                move(i,self.en_DESTINO)
-                self.en_view_LOGGER["state"]="disabled"
-                
-            elif update.NewConflicted():
-                self.en_view_LOGGER["state"] = "normal"
-                self.en_view_LOGGER.insert(END,f"{basename(i)} está desatualizado!\n","red")
-                self.logGeneral = self.logGeneral + f"{basename(i)} não foi atualizado. Existe uma revisão superior cadastrada\n"
-                self.en_view_LOGGER.see(END)
-                self.en_view_LOGGER["state"]="disabled"
-                
-                not_add += 1
-                
-                continue
+            self.en_view_LOGGER.see(END)
+            self.en_view_LOGGER["state"]="disabled"
             
-            elif not update.FileExists():
+            self.logGeneral = self.logGeneral + "\n2. Quanto aos arquivos selecionados para atualização:\n\n"
+
+            # atualização dos arquivos selecionados para o envio
+            for i in self.en_ARQUIVOS:
+                if not isfile(i):
+                    continue
                 
-                if not fa(i).FileNumber() is None:
+                update = FileConflicted(i,self.en_DESTINO,self.en_LOCALANTIGO)
+                update.OldConflicted()
+                
+                if update.FileExists():
                     self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,f"A versão {basename(i)} foi cadastrada!\n","green")
-                    self.logGeneral = self.logGeneral + f"{basename(i)} foi cadastrado como primeira revisão do projeto\n"
-                    self.en_view_LOGGER.see(END)
-                    self.en_view_LOGGER["state"]="disabled"
-                    move(i,self.en_DESTINO)
-                    
-                    add += 1
-                    
-                else:
-                    self.en_view_LOGGER["state"] = "normal"
-                    self.en_view_LOGGER.insert(END,f"{basename(i)} fora do padrão\n","red")
-                    self.logGeneral = self.logGeneral + f"{basename(i)} não está obedecendo o padrão de nomenclatura. Revisar ou cadastrar manualmente\n"
+                    self.en_view_LOGGER.insert(END,f"A versão {basename(i)} já existe!\n","red")
+                    self.logGeneral = self.logGeneral + f"{basename(i)} não foi atualizado. Esta revisão já existe na pasta\n"
                     self.en_view_LOGGER.see(END)
                     self.en_view_LOGGER["state"]="disabled"
                     
                     not_add += 1
                     
+                    continue
                 
-        self.logGeneral = self.logGeneral + "\n\nResumo geral: "
-        self.en_view_LOGGER["state"] = "normal"
-        self.en_view_LOGGER.insert(END,f"\n{add} arquivos adicionados\n{not_add} arquivos para revisão")
-        self.logGeneral = self.logGeneral + f"\n\n{add} arquivos foram adicionados com sucesso\n{not_add} arquivos precisam ser revisados\n"
-        self.en_view_LOGGER.see(END)
-        self.en_view_LOGGER["state"] = "disabled"
-
-        self.logGenerator()
+                elif update.arquivosAtualizados:
                     
+                    self.en_view_LOGGER["state"] = "normal"
+                    for log in update.arquivosAtualizados:
+                        
+                        add += 1
+                        if not log is None and FileConflicted(log,self.en_LOCALANTIGO).FileExists():
+                            remove(join(self.en_LOCALANTIGO,basename(log)))
+                            move(log,self.en_LOCALANTIGO)
+                            
+                            self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
+                            self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))} sobrepondo um arquivo anterior\n"
+                            
+                        elif not log is None:
+                            move(log,self.en_LOCALANTIGO)
+                            self.en_view_LOGGER.insert(END,f"{basename(log)} foi atualizado \n","gray")
+                            self.logGeneral = self.logGeneral + f"{basename(log)} foi movido para a pasta {basename(abspath(self.en_LOCALANTIGO))}\n"
+                    
+                    self.en_view_LOGGER.insert(END,f"{basename(i)} foi adicionado \n","green")
+                    self.logGeneral = self.logGeneral + f"{basename(i)} foi adicionado como versão atual do arquivo\n"
+                    
+                    move(i,self.en_DESTINO)
+                    self.en_view_LOGGER["state"]="disabled"
+                    
+                elif update.NewConflicted():
+                    self.en_view_LOGGER["state"] = "normal"
+                    self.en_view_LOGGER.insert(END,f"{basename(i)} está desatualizado!\n","red")
+                    self.logGeneral = self.logGeneral + f"{basename(i)} não foi atualizado. Existe uma revisão superior cadastrada\n"
+                    self.en_view_LOGGER.see(END)
+                    self.en_view_LOGGER["state"]="disabled"
+                    
+                    not_add += 1
+                    
+                    continue
+                
+                elif not update.FileExists():
+                    
+                    if not fa(i).FileNumber() is None:
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"A versão {basename(i)} foi cadastrada!\n","green")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} foi cadastrado como primeira revisão do projeto\n"
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+                        move(i,self.en_DESTINO)
+                        
+                        add += 1
+                        
+                    else:
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} fora do padrão\n","red")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} não está obedecendo o padrão de nomenclatura. Revisar ou cadastrar manualmente\n"
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+                        
+                        not_add += 1
+                
+                if update.erro_de_fase:
+                        self.en_view_LOGGER["state"] = "normal"
+                        self.en_view_LOGGER.insert(END,f"{basename(i)} tem fases diferentes!\n","red")
+                        self.logGeneral = self.logGeneral + f"{basename(i)} não foi atualizado. Verificar qual a fase atual do empreendimento\n"
+                        self.en_view_LOGGER.see(END)
+                        self.en_view_LOGGER["state"]="disabled"
+                    
+            self.logGeneral = self.logGeneral + "\n\nResumo geral: "
+            self.en_view_LOGGER["state"] = "normal"
+            self.en_view_LOGGER.insert(END,f"\n{add} arquivos adicionados\n{not_add} arquivos para revisão")
+            self.logGeneral = self.logGeneral + f"\n\n{add} arquivos foram adicionados com sucesso\n{not_add} arquivos precisam ser revisados\n"
+            self.en_view_LOGGER.see(END)
+            self.en_view_LOGGER["state"] = "disabled"
+
+            self.logGenerator()
+ 
+    def input_verification(self) -> list:
+        # verifica se todas as entradas estão preenchidas
+        
+        _var = list()
+        if not self.en_AUTOR.get():
+            _var.append(1)
+        else:
+            _var.append(None)
+        
+        if not self.en_DESTINO:
+            _var.append(1)
+        else: 
+            _var.append(None)
+        
+        if not self.en_LOCALANTIGO:
+            _var.append(1)
+        else:
+            _var.append(None)
+            
+        if not self.en_ARQUIVOS:
+            _var.append(1)
+        else:
+            _var.append(None)
+        
+        return _var
+         
     def logGenerator(self):
         text1 = f"Responsável pela atualização: {self.en_AUTOR.get()}\nData da atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n-------------------------------------------------------------\n{self.logGeneral}\n\nOBS: No caso de dúvidas ou bugs contatar por ian.cubo@outlook.com"
         with open(f"{self.en_LOCALANTIGO}\\Atualização {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}-{self.en_AUTOR.get()}.txt","w+") as fp:
